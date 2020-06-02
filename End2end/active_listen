@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# On the receiver end
+port=1234
+listencmd="nc -l -p $port | tar xzvf -"
+home=$(pwd)
+queue=$home'/queues'
+ready2send=$queue'/ready2send'
+sent=$queue'/sent'
+newmessages=$queue'/newmessages'
+oldmessages=$queue'/oldmessages'
+
+# reads parameters and performs events
+# ./active_listen [par1] [par2] ... [parN]
+while [ $# -gt 0 ]
+do case $1 in
+    receiver)
+    	tmux new -d -s listen_window './active_listen listen'
+		shift
+		;;
+	
+
+    listen)
+        cd $newmessages
+        eval "${listencmd}"
+		#listencmd="nc -l -p 1234 | tar xzvf -"
+        cd $home
+		./active_listen listen
+        shift
+        ;;
+    
+esac
+done
+
+
+

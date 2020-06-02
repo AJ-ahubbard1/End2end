@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#save pathways to and create missing directories
+ip=$1
+port=$2
+sendcmd="tar -czf - $newfile | nc -N $ip $port"
+home=$(pwd)
+queue=$home'/queues'
+ready2send=$queue'/ready2send'
+sent=$queue'/sent'
+newmessages=$queue'/newmessages'
+oldmessages=$queue'/oldmessages'
+cd $ready2send
+while (( 1 ))
+do
+	new_count="$(ls $ready2send | wc -l)"
+	if (( $new_count >= 2 ))
+	then
+	newfile="$(ls $ready2send | grep -m 1 15)"
+	eval "${sendcmd}"
+	mv $newfile $sent
+	fi
+done
+cd $home
+

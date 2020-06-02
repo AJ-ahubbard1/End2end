@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#save pathways to and create missing directories
+home=$(pwd)
+queue=$home'/queues'
+#ready2send=$queue'/ready2send'
+#sent=$queue'/sent'
+newmessages=$queue'/newmessages'
+#oldmessages=$queue'/oldmessages'
+	
+oldcount="0"
+encrypt_oldcount="0"
+sleep 1
+while (( 1 ))
+do
+	newcount="$(ls $newmessages | wc -l)"
+	if (( $newcount > 0 ))
+	then
+		if (( $newcount > $oldcount )) 
+		then
+        echo -e "You have new messages\n"
+        fi
+    fi
+    encrypt_newcount="$(ls $newmessages | grep _enc | wc -l)"
+    if (( $encrypt_newcount > 0 ))
+    then 		
+	    if (( $encrypt_newcount > $encrypt_oldcount )) 
+		then
+		    echo -e "You have new encrypted messages\n"
+		fi
+	fi
+	oldcount=$newcount
+	encrypt_oldcount=$encrypt_newcount
+	sleep 2 
+done
+

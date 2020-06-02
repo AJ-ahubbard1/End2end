@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#save pathways to and create missing directories
+home=$(pwd)
+queue=$home'/queues'
+#ready2send=$queue'/ready2send'
+#sent=$queue'/sent'
+newmessages=$queue'/newmessages'
+oldmessages=$queue'/oldmessages'
+
+new_count="$(ls $newmessages | wc -l)"
+cd $newmessages
+if (( $new_count > 0 ))
+then
+    mv * $oldmessages
+fi
+old_count=0
+
+while (( 1 ))
+do
+	new_count="$(ls $newmessages | wc -l)"
+	if (( $new_count > 0 ))
+	then
+	while (( $new_count < 2 )) 
+	do
+		new_count="$(ls $newmessages | wc -l)"
+	done
+	while (( $new_count > 0 ))
+	do
+		newfile="$(ls $newmessages | grep -m 1 15)"
+	aplay $newfile
+	mv $newfile $oldmessages
+	new_count="$(ls $newmessages | wc -l)"
+	done
+	fi
+done
+cd $home
+

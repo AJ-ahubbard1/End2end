@@ -1,0 +1,423 @@
+#!/bin/bash
+
+check_passwordfile() {
+clear
+# name of password file, checks to see if password file exists in pwd
+passwordfile=pswd
+if [ ! -e $passwordfile ]
+then
+    echo "Please input a password"
+    read password
+    echo "$password" > "$passwordfile"
+    chmod 600 "$passwordfile"
+fi
+}
+setup() {
+check_passwordfile
+# On the receiver side
+# edit inside active_listen script
+#listencmd="nc -l -p 1234 | tar xzvf -"
+
+# On the sender side
+# * is the path to the file we are sending
+# ip and port specifies who we are sending to
+
+ip="192.168.1.27"
+#ip="192.168.1.18"
+#Doney is 102, Joey is 103
+#ip="192.168.0.102"
+#ip="192.168.0.102"
+port="1234"
+sendcmd="tar -czf - * | nc -N $ip $port"
+#sendcmd="tar -czf - * | nc -N 192.168.0.102 1234"
+
+#maximum playback length, important for playing raw data
+maxpb="10"
+
+# reroutes terminal messages to a temp log file, final log appended at the end
+#exec &> temp.log
+#echo ' '
+#date
+#echo $0 $*
+#aplay --version
+#openssl version
+# creates directory 'queues' and subdirectories
+#save pathways to and create missing directories
+home=$(pwd)
+queue=$home'/queues'
+ready2send=$queue'/ready2send'
+sent=$queue'/sent'
+newmessages=$queue'/newmessages'
+oldmessages=$queue'/oldmessages'
+temp=$queue'/temp'
+pwfile=$(pwd)/$passwordfile
+if [ ! -e $queue ]
+then 
+    mkdir $queue
+    mkdir $ready2send
+    mkdir $sent
+    mkdir $newmessages
+    mkdir $oldmessages
+fi
+
+if [ ! -e $ready2send ]
+then 
+    mkdir $ready2send
+fi
+if [ ! -e $sent ]
+then 
+    mkdir $sent
+fi
+if [ ! -e $newmessages ]
+then 
+    mkdir $newmessages
+fi
+if [ ! -e $oldmessages ]
+then 
+    mkdir $oldmessages
+fi
+
+#./checknew &
+./active_listen receiver
+
+repeat=1
+}
+
+
+display() {
+    umenu="u:\trecord and send unencrypted audio\n"
+    emenu="e:\trecord and send encrypted audio\n"
+    dmenu="d:\tdecrypt encrypted messages\n"
+    nmenu="n:\tplay new messages\n"
+    omenu="o:\tplay old messages\n"
+    rmenu="r:\tdelete old sent and received messages\n"
+    lmenu="l:\tlist the contents of the queues\n"
+    pmenu="p:\tchange password\n"
+    tmenu="t:\ttelephone\n"
+    xmenu="x:\texit\n"
+    clear
+    echo -e "------------------------------\n"
+    echo -e "---End2End Audio Encryption---\n"
+    echo -e "------------------------------\n\n\n"
+    echo -e "Please select a command\n"
+    
+    case $1 in
+        u)
+        echo -e " ->$umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="u"
+        ;;
+
+        e)
+        echo -e "   $umenu"
+        echo -e " ->$emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="e"
+        ;;
+        
+        d)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e " ->$dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="d"
+        ;;
+        
+        n)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e " ->$nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="n"
+        ;;
+
+        o)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e " ->$omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="o"
+        ;;
+
+        r)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e " ->$rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="r"
+        ;;
+
+        l)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e " ->$lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="l"
+        ;;
+        
+        p)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e " ->$pmenu"
+        echo -e "   $tmenu"
+        echo -e "   $xmenu"
+        prevcmd="p"
+        ;;
+        
+	t)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e " ->$tmenu"
+        echo -e "   $xmenu"
+        prevcmd="t"
+        ;;
+
+        x)
+        echo -e "   $umenu"
+        echo -e "   $emenu"
+        echo -e "   $dmenu"
+        echo -e "   $nmenu"
+        echo -e "   $omenu"
+        echo -e "   $rmenu"
+        echo -e "   $lmenu"
+        echo -e "   $pmenu"
+        echo -e "   $tmenu"
+        echo -e " ->$xmenu"
+        prevcmd="x"
+        ;;
+       
+        *)
+        display $prevcmd
+        ;; 
+    esac
+    
+}
+
+input() {
+    # for distinguishing " ", "\t" from "\n"
+    IFS=
+
+    read -s -n 1 usercommand
+    if [[ $usercommand = "" ]] 
+    then
+        event_handler $prevcmd
+    else
+        display $usercommand
+        input
+    fi 
+}
+inputwait() {
+    IFS=
+    
+    echo -e "\npress any key to continue"
+    read -s -n 1 key
+}
+
+# reads parameters and performs events
+
+event_handler() {
+case $1 in
+    
+    u)
+        start_time="$(date +%s)"
+        echo "use ctrl-c to stop recording"
+        arecord -f cd $start_time
+        mv $start_time $ready2send
+        echo "moved $start_time to $ready2send"
+        event_handler send
+        ;;
+
+    e)
+        start_time="$(date +%s)"
+        enc_file=$start_time'_enc'
+        echo "use ctrl-c to stop recording"
+        arecord -f cd $start_time
+        openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 1000 -salt -in $start_time -out $enc_file -pass file:$pwfile
+        mv $start_time $sent
+        mv $enc_file $ready2send
+        echo "moved $enc_file to $ready2send"
+        event_handler send
+        ;;
+
+    send)
+        cd $ready2send
+        eval "${sendcmd}"
+		mv * $sent
+        cd $home
+        ;;
+        
+    d)
+        cd $newmessages
+	mkdir $temp
+        enc_count=$(ls $newmessages | grep _enc | wc -l)
+        for((i=0; i<$enc_count; i++));
+        do 
+            new_enc_file=$(ls $newmessages | grep -m 1 _enc)
+            file=${new_enc_file%_*}
+            openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 1000 -salt -d -in $new_enc_file -out $file -pass file:$pwfile
+        mv $new_enc_file $temp
+        done
+        
+	cd $oldmessages
+        enc_count=$(ls $oldmessages | grep _enc | wc -l)
+        for((i=0; i<$enc_count; i++));
+        do 
+            old_enc_file=$(ls $oldmessages | grep -m 1 _enc)
+            file=${old_enc_file%_*}
+            openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 1000 -salt -d -in $old_enc_file -out $file -pass file:$pwfile
+        mv $old_enc_file $temp
+        done
+        rm -r $temp
+        cd $home
+        ;;
+
+    n)
+	cd $newmessages
+	new_cnt=$(ls $newmessages | wc -l) 
+	for((i=0; i<$new_cnt; i++));
+	do
+		new_mesg=$(ls $newmessages | grep -m 1 15)
+		aplay --duration=$maxpb $new_mesg
+		mv $new_mesg $oldmessages
+	done
+	cd $home
+        ;;
+    
+    o)
+	cd $oldmessages
+	old_cnt=$(ls $oldmessages | wc -l) 
+	mkdir $temp
+	for((i=0; i<$old_cnt; i++));
+	do
+		old_mesg=$(ls $oldmessages | grep -m 1 15)
+		aplay --duration=$maxpb $old_mesg
+		mv $old_mesg $temp
+	done
+	mv $temp/* $oldmessages
+	rm -r $temp
+	cd $home
+        ;;
+
+    r)
+        rm $oldmessages/*
+        rm $sent/*
+        ;;
+
+    l)
+        clear
+        echo contents of $newmessages
+        ls $newmessages
+        echo -e "\n"
+        echo contents of $oldmessages
+        ls $oldmessages
+        echo -e "\n"
+        echo contents of $ready2send
+        ls $ready2send
+        echo -e "\n"
+        echo contents of $sent
+        ls $sent
+        echo -e "\n"
+        inputwait
+        ;;
+    
+    p)
+        rm $pwfile
+        check_passwordfile
+        ;;
+	
+    t)
+	./telephone &
+	./sender $ip $port &
+        echo "use ctrl-c to stop recording"
+		arecord -f cd --max-file-time 4 --use-strftime $newmessages/%s
+        echo killing telephone and sender...please wait
+	sleep 4
+	killall telephone
+	killall sender
+	;;
+  
+    x)
+      repeat=0
+      ;;
+  
+esac
+}
+
+finish() {
+killall telephone
+#killall checknew
+tmux kill-session -t listen_window
+clear
+#moves temporary log from current session to front of cumulative logfiles
+#touch stdout.log
+#cat stdout.log >> temp.log
+#mv temp.log stdout.log
+}
+
+#####MAIN#####
+setup
+
+while (( $repeat ))
+do
+    display u
+    input 
+done
+finish
+
+
